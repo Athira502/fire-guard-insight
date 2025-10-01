@@ -29,8 +29,8 @@ interface RequestDetailsModalProps {
 const RequestDetailsModal = ({ request, open, onOpenChange }: RequestDetailsModalProps) => {
   // Mock analysis data
   const deviationData = [
-    { name: "Requested", value: 85, color: "hsl(var(--primary))" },
-    { name: "Deviated", value: 15, color: "hsl(var(--accent))" },
+    { name: "Related to Reason", value: 75, color: "hsl(var(--success))" },
+    { name: "Not Related", value: 25, color: "hsl(var(--destructive))" },
   ];
 
   const necessityData = [
@@ -40,9 +40,21 @@ const RequestDetailsModal = ({ request, open, onOpenChange }: RequestDetailsModa
 
   const riskScore = 35; // Mock risk score
   const getRiskLevel = (score: number) => {
-    if (score < 30) return { label: "Low", color: "success" };
-    if (score < 60) return { label: "Medium", color: "warning" };
-    return { label: "High", color: "destructive" };
+    if (score < 30) return { 
+      label: "Low", 
+      color: "success",
+      explanation: "Most activities aligned with stated reason. Minimal compliance concerns." 
+    };
+    if (score < 60) return { 
+      label: "Medium", 
+      color: "warning",
+      explanation: "Some deviations detected. Activities partially matched the stated reason. Review recommended." 
+    };
+    return { 
+      label: "High", 
+      color: "destructive",
+      explanation: "Significant deviations found. Activities did not align well with stated reason. Immediate review required." 
+    };
   };
 
   const risk = getRiskLevel(riskScore);
@@ -175,26 +187,29 @@ const RequestDetailsModal = ({ request, open, onOpenChange }: RequestDetailsModa
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Risk Score */}
-              <div className="flex items-center justify-between p-4 rounded-lg border-2 border-dashed" style={{ borderColor: `hsl(var(--${risk.color}))` }}>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Risk Assessment Score</p>
-                  <p className="text-3xl font-bold mt-1">{riskScore}%</p>
+              <div className="p-4 rounded-lg border-2 border-dashed space-y-3" style={{ borderColor: `hsl(var(--${risk.color}))` }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Risk Assessment Score</p>
+                    <p className="text-3xl font-bold mt-1">{riskScore}%</p>
+                  </div>
+                  <Badge
+                    className="text-lg px-4 py-2"
+                    style={{
+                      backgroundColor: `hsl(var(--${risk.color}))`,
+                      color: `hsl(var(--${risk.color}-foreground))`,
+                    }}
+                  >
+                    {risk.label} Risk
+                  </Badge>
                 </div>
-                <Badge
-                  className="text-lg px-4 py-2"
-                  style={{
-                    backgroundColor: `hsl(var(--${risk.color}))`,
-                    color: `hsl(var(--${risk.color}-foreground))`,
-                  }}
-                >
-                  {risk.label} Risk
-                </Badge>
+                <p className="text-sm text-muted-foreground">{risk.explanation}</p>
               </div>
 
               {/* Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="text-sm font-semibold mb-3">Activity Deviation Analysis</h4>
+                  <h4 className="text-sm font-semibold mb-3">Deviation Probability Analysis</h4>
                   <ResponsiveContainer width="100%" height={250}>
                     <BarChart data={deviationData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -215,7 +230,7 @@ const RequestDetailsModal = ({ request, open, onOpenChange }: RequestDetailsModa
                     </BarChart>
                   </ResponsiveContainer>
                   <p className="text-xs text-muted-foreground mt-2">
-                    Comparison of activities performed vs. reason provided
+                    Probability that deviated activities are related to the stated reason
                   </p>
                 </div>
 
