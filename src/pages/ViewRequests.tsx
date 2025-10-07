@@ -10,7 +10,8 @@ import RequestDetailsModal from "@/components/RequestDetailsModal";
 interface Request {
   id: string;
   ritmNumber: string;
-  name: string;
+  requestedFor: string;
+  requestedOnBehalfOf: string;
   requestedDate: string;
   usedDate: string;
   requestedTcodes: string[];
@@ -77,7 +78,7 @@ const ViewRequests = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>RITM Number</TableHead>
-                      <TableHead>Name</TableHead>
+                      <TableHead>Requested For</TableHead>
                       <TableHead>Requested Date</TableHead>
                       <TableHead>Used Date</TableHead>
                       <TableHead>TCodes</TableHead>
@@ -88,7 +89,7 @@ const ViewRequests = () => {
                     {requests.map((request) => (
                       <TableRow key={request.id}>
                         <TableCell className="font-medium">{request.ritmNumber}</TableCell>
-                        <TableCell>{request.name}</TableCell>
+                        <TableCell>{request.requestedFor}</TableCell>
                         <TableCell>{format(new Date(request.requestedDate), "PP")}</TableCell>
                         <TableCell>{format(new Date(request.usedDate), "PP")}</TableCell>
                         <TableCell>

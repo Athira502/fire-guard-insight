@@ -15,7 +15,8 @@ import { toast } from "sonner";
 const CreateRequest = () => {
   const navigate = useNavigate();
   const [ritmNumber, setRitmNumber] = useState("");
-  const [name, setName] = useState("");
+  const [requestedFor, setRequestedFor] = useState("");
+  const [requestedOnBehalfOf, setRequestedOnBehalfOf] = useState("");
   const [requestedDate, setRequestedDate] = useState<Date>();
   const [usedDate, setUsedDate] = useState<Date>();
   const [requestedTcodes, setRequestedTcodes] = useState("");
@@ -25,14 +26,27 @@ const CreateRequest = () => {
   const [cdhdrLog, setCdhdrLog] = useState<File | null>(null);
   const [cdposLog, setCdposLog] = useState<File | null>(null);
 
-  const handleFileUpload = (file: File | null, setter: (file: File | null) => void) => {
+  const [selectedAuditLog, setSelectedAuditLog] = useState<File | null>(null);
+  const [selectedCdhdrLog, setSelectedCdhdrLog] = useState<File | null>(null);
+  const [selectedCdposLog, setSelectedCdposLog] = useState<File | null>(null);
+
+  const handleFileSelect = (file: File | null, setter: (file: File | null) => void) => {
     setter(file);
+  };
+
+  const handleFileUpload = (file: File | null, setter: (file: File | null) => void, uploadedSetter: (file: File | null) => void) => {
+    if (file) {
+      uploadedSetter(file);
+      toast.success("File uploaded successfully");
+    } else {
+      toast.error("Please select a file first");
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!ritmNumber || !name || !requestedDate || !usedDate || !requestedTcodes || !reason || !activities) {
+    if (!ritmNumber || !requestedFor || !requestedOnBehalfOf || !requestedDate || !usedDate || !requestedTcodes || !reason || !activities) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -40,7 +54,8 @@ const CreateRequest = () => {
     const newRequest = {
       id: Date.now().toString(),
       ritmNumber,
-      name,
+      requestedFor,
+      requestedOnBehalfOf,
       requestedDate: requestedDate.toISOString(),
       usedDate: usedDate.toISOString(),
       requestedTcodes: requestedTcodes.split(",").map(t => t.trim()),
@@ -94,12 +109,23 @@ const CreateRequest = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name *</Label>
+                  <Label htmlFor="requestedFor">Requested For *</Label>
                   <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your full name"
+                    id="requestedFor"
+                    value={requestedFor}
+                    onChange={(e) => setRequestedFor(e.target.value)}
+                    placeholder="Who is this request for"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="requestedOnBehalfOf">Requested On Behalf Of *</Label>
+                  <Input
+                    id="requestedOnBehalfOf"
+                    value={requestedOnBehalfOf}
+                    onChange={(e) => setRequestedOnBehalfOf(e.target.value)}
+                    placeholder="On behalf of whom"
                     required
                   />
                 </div>
@@ -200,21 +226,27 @@ const CreateRequest = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Upload Logs</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FileUploadCard
+                <div className="space-y-3">
+                  <FileUploadRow
                     label="Audit Logs"
-                    file={auditLog}
-                    onFileSelect={(file) => handleFileUpload(file, setAuditLog)}
+                    selectedFile={selectedAuditLog}
+                    uploadedFile={auditLog}
+                    onFileSelect={(file) => handleFileSelect(file, setSelectedAuditLog)}
+                    onFileUpload={() => handleFileUpload(selectedAuditLog, setAuditLog, setAuditLog)}
                   />
-                  <FileUploadCard
+                  <FileUploadRow
                     label="CDHDR Logs"
-                    file={cdhdrLog}
-                    onFileSelect={(file) => handleFileUpload(file, setCdhdrLog)}
+                    selectedFile={selectedCdhdrLog}
+                    uploadedFile={cdhdrLog}
+                    onFileSelect={(file) => handleFileSelect(file, setSelectedCdhdrLog)}
+                    onFileUpload={() => handleFileUpload(selectedCdhdrLog, setCdhdrLog, setCdhdrLog)}
                   />
-                  <FileUploadCard
+                  <FileUploadRow
                     label="CDPOS Logs"
-                    file={cdposLog}
-                    onFileSelect={(file) => handleFileUpload(file, setCdposLog)}
+                    selectedFile={selectedCdposLog}
+                    uploadedFile={cdposLog}
+                    onFileSelect={(file) => handleFileSelect(file, setSelectedCdposLog)}
+                    onFileUpload={() => handleFileUpload(selectedCdposLog, setCdposLog, setCdposLog)}
                   />
                 </div>
               </div>
@@ -240,47 +272,71 @@ const CreateRequest = () => {
   );
 };
 
-const FileUploadCard = ({
+const FileUploadRow = ({
   label,
-  file,
+  selectedFile,
+  uploadedFile,
   onFileSelect,
+  onFileUpload,
 }: {
   label: string;
-  file: File | null;
+  selectedFile: File | null;
+  uploadedFile: File | null;
   onFileSelect: (file: File | null) => void;
+  onFileUpload: () => void;
 }) => {
   return (
-    <Card className="relative">
-      <CardContent className="p-4">
-        <Label className="text-sm font-medium mb-2 block">{label}</Label>
-        {!file ? (
-          <label className="flex flex-col items-center justify-center h-24 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-            <Upload className="h-6 w-6 text-muted-foreground mb-2" />
-            <span className="text-xs text-muted-foreground">Click to upload</span>
-            <input
-              type="file"
-              className="hidden"
-              onChange={(e) => {
-                const selectedFile = e.target.files?.[0];
-                if (selectedFile) onFileSelect(selectedFile);
-              }}
-            />
-          </label>
-        ) : (
-          <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-            <span className="text-sm truncate flex-1">{file.name}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onFileSelect(null)}
-              className="h-6 w-6 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+    <div className="flex items-center gap-4 p-4 border rounded-lg">
+      <Label className="text-sm font-medium w-32 flex-shrink-0">{label}</Label>
+      
+      <div className="flex-1">
+        <label className="cursor-pointer">
+          <Button variant="outline" size="sm" type="button" asChild>
+            <span>Choose File</span>
+          </Button>
+          <input
+            type="file"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) onFileSelect(file);
+            }}
+          />
+        </label>
+      </div>
+
+      <div className="flex-1">
+        {selectedFile && (
+          <span className="text-sm text-muted-foreground truncate block">
+            {selectedFile.name}
+          </span>
         )}
-      </CardContent>
-    </Card>
+      </div>
+
+      <Button
+        variant="default"
+        size="sm"
+        type="button"
+        onClick={onFileUpload}
+        disabled={!selectedFile}
+      >
+        <Upload className="mr-2 h-4 w-4" />
+        Upload File
+      </Button>
+
+      {uploadedFile && (
+        <Button
+          variant="ghost"
+          size="sm"
+          type="button"
+          onClick={() => {
+            onFileSelect(null);
+          }}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
   );
 };
 
