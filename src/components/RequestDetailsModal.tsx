@@ -239,58 +239,54 @@ const RequestDetailsModal = ({ request, open, onOpenChange }: RequestDetailsModa
                   <CardTitle>AI Analysis Insights</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Two Column Layout for Activity Alignment and Ownership */}
+                  {/* Grid Layout for All Four Boxes */}
                   <div className="grid grid-cols-2 gap-4">
-                    {/* Left Column - Activity Alignment */}
-                    <div className="space-y-4">
-                      <Card className="border-primary/20">
-                        <CardContent className="pt-6">
-                          <h4 className="text-sm font-medium mb-2">Activity Alignment</h4>
-                          <div className="flex items-end gap-2 mb-2">
-                            <span className="text-3xl font-bold text-primary">{activityAlignment}%</span>
-                          </div>
-                          <Progress value={activityAlignment} className="mb-2" />
-                          <p className="text-xs text-muted-foreground">
-                            Match between performed activities and requested purpose
-                          </p>
-                        </CardContent>
-                      </Card>
+                    {/* Activity Alignment */}
+                    <Card className="border-primary/20">
+                      <CardContent className="pt-6 h-full flex flex-col">
+                        <h4 className="text-sm font-medium mb-2">Activity Alignment</h4>
+                        <div className="flex items-end gap-2 mb-2">
+                          <span className="text-3xl font-bold text-primary">{activityAlignment}%</span>
+                        </div>
+                        <Progress value={activityAlignment} className="mb-2" />
+                        <p className="text-xs text-muted-foreground">
+                          Match between performed activities and requested purpose
+                        </p>
+                      </CardContent>
+                    </Card>
 
-                      {/* Justification under Activity Alignment */}
-                      <Card className="border-primary/20">
-                        <CardContent className="pt-6">
-                          <h4 className="text-sm font-medium mb-3">Justification</h4>
-                          <Badge className="bg-warning text-warning-foreground">Partially</Badge>
-                        </CardContent>
-                      </Card>
-                    </div>
+                    {/* Ownership */}
+                    <Card className="border-primary/20">
+                      <CardContent className="pt-6 h-full flex flex-col">
+                        <h4 className="text-sm font-medium mb-2">Ownership</h4>
+                        <Badge className="bg-primary text-primary-foreground mb-3">IT Users</Badge>
+                        <p className="text-xs text-muted-foreground">
+                          Primary area of responsibility for performed actions
+                        </p>
+                      </CardContent>
+                    </Card>
 
-                    {/* Right Column - Ownership */}
-                    <div className="space-y-4">
-                      <Card className="border-primary/20">
-                        <CardContent className="pt-6">
-                          <h4 className="text-sm font-medium mb-2">Ownership</h4>
-                          <Badge className="bg-primary text-primary-foreground mb-3">IT Users</Badge>
-                          <p className="text-xs text-muted-foreground">
-                            Primary area of responsibility for performed actions
-                          </p>
-                        </CardContent>
-                      </Card>
+                    {/* Justification */}
+                    <Card className="border-primary/20">
+                      <CardContent className="pt-6 h-full flex flex-col">
+                        <h4 className="text-sm font-medium mb-3">Justification</h4>
+                        <Badge className="bg-warning text-warning-foreground">Partially</Badge>
+                      </CardContent>
+                    </Card>
 
-                      {/* Risk Score under Ownership */}
-                      <Card className="border-warning/20">
-                        <CardContent className="pt-6">
-                          <h4 className="text-sm font-medium mb-2">Risk Score</h4>
-                          <div className="flex items-end gap-2 mb-2">
-                            <span className="text-3xl font-bold text-warning">{riskScore}/100</span>
-                          </div>
-                          <Progress value={riskScore} className="mb-2" />
-                          <p className="text-xs text-muted-foreground">
-                            Assesses potential risk associated with activities
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </div>
+                    {/* Risk Score */}
+                    <Card className="border-warning/20">
+                      <CardContent className="pt-6 h-full flex flex-col">
+                        <h4 className="text-sm font-medium mb-2">Risk Score</h4>
+                        <div className="flex items-end gap-2 mb-2">
+                          <span className="text-3xl font-bold text-warning">{riskScore}/100</span>
+                        </div>
+                        <Progress value={riskScore} className="mb-2" />
+                        <p className="text-xs text-muted-foreground">
+                          Assesses potential risk associated with activities
+                        </p>
+                      </CardContent>
+                    </Card>
                   </div>
 
                   {/* Red Flags/Observations */}
