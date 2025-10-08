@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, CalendarIcon, Upload, X } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,9 @@ import { toast } from "sonner";
 
 const CreateRequest = () => {
   const navigate = useNavigate();
-  const [ritmNumber, setRitmNumber] = useState("");
+  const [itsmNumber, setItsmNumber] = useState("");
+  const [client, setClient] = useState("");
+  const [system, setSystem] = useState("");
   const [requestedFor, setRequestedFor] = useState("");
   const [requestedOnBehalfOf, setRequestedOnBehalfOf] = useState("");
   const [requestedDate, setRequestedDate] = useState<Date>();
@@ -46,14 +49,17 @@ const CreateRequest = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!ritmNumber || !requestedFor || !requestedOnBehalfOf || !requestedDate || !usedDate || !requestedTcodes || !reason || !activities) {
+    if (!itsmNumber || !client || !system || !requestedFor || !requestedOnBehalfOf || !requestedDate || !usedDate || !requestedTcodes || !reason || !activities) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     const newRequest = {
       id: Date.now().toString(),
-      ritmNumber,
+      analysisId: `AN-${Date.now().toString().slice(-8)}`,
+      itsmNumber,
+      client,
+      system,
       requestedFor,
       requestedOnBehalfOf,
       requestedDate: requestedDate.toISOString(),
@@ -98,14 +104,41 @@ const CreateRequest = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="ritm">RITM Number *</Label>
+                  <Label htmlFor="itsm">ITSM Number *</Label>
                   <Input
-                    id="ritm"
-                    value={ritmNumber}
-                    onChange={(e) => setRitmNumber(e.target.value)}
-                    placeholder="e.g., RITM0123456"
+                    id="itsm"
+                    value={itsmNumber}
+                    onChange={(e) => setItsmNumber(e.target.value)}
+                    placeholder="e.g., ITSM0123456"
                     required
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="client">Client *</Label>
+                  <Select value={client} onValueChange={setClient} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select client" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Tarento">Tarento</SelectItem>
+                      <SelectItem value="Implema">Implema</SelectItem>
+                      <SelectItem value="ATOS">ATOS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="system">System *</Label>
+                  <Select value={system} onValueChange={setSystem} required>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select system" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ECC">ECC</SelectItem>
+                      <SelectItem value="S4HANA">S4HANA</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

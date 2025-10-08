@@ -10,7 +10,10 @@ import { format } from "date-fns";
 
 interface Request {
   id: string;
-  ritmNumber: string;
+  analysisId: string;
+  itsmNumber: string;
+  client: string;
+  system: string;
   requestedFor: string;
   requestedOnBehalfOf: string;
   requestedDate: string;
@@ -64,7 +67,7 @@ const RequestDetailsModal = ({ request, open, onOpenChange }: RequestDetailsModa
         <DialogHeader>
           <DialogTitle className="text-2xl">Request Details</DialogTitle>
           <DialogDescription>
-            Analysis and insights for RITM: {request.ritmNumber}
+            Analysis and insights for ITSM: {request.itsmNumber}
           </DialogDescription>
         </DialogHeader>
 
@@ -77,8 +80,20 @@ const RequestDetailsModal = ({ request, open, onOpenChange }: RequestDetailsModa
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">RITM Number</p>
-                  <p className="font-semibold">{request.ritmNumber}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Analysis ID</p>
+                  <p className="font-semibold">{request.analysisId}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">ITSM Number</p>
+                  <p className="font-semibold">{request.itsmNumber}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Client</p>
+                  <p className="font-semibold">{request.client}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">System</p>
+                  <p className="font-semibold">{request.system}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Requested For</p>
@@ -224,31 +239,52 @@ const RequestDetailsModal = ({ request, open, onOpenChange }: RequestDetailsModa
                   <CardTitle>AI Analysis Insights</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Activity Alignment & Ownership */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card className="border-primary/20">
-                      <CardContent className="pt-6">
-                        <h4 className="text-sm font-medium mb-2">Activity Alignment</h4>
-                        <div className="flex items-end gap-2 mb-2">
-                          <span className="text-3xl font-bold text-primary">{activityAlignment}%</span>
-                        </div>
-                        <Progress value={activityAlignment} className="mb-2" />
-                        <p className="text-xs text-muted-foreground">
-                          Match between performed activities and requested purpose
-                        </p>
-                      </CardContent>
-                    </Card>
+                  {/* Activity Alignment */}
+                  <Card className="border-primary/20">
+                    <CardContent className="pt-6">
+                      <h4 className="text-sm font-medium mb-2">Activity Alignment</h4>
+                      <div className="flex items-end gap-2 mb-2">
+                        <span className="text-3xl font-bold text-primary">{activityAlignment}%</span>
+                      </div>
+                      <Progress value={activityAlignment} className="mb-2" />
+                      <p className="text-xs text-muted-foreground">
+                        Match between performed activities and requested purpose
+                      </p>
+                    </CardContent>
+                  </Card>
 
-                    <Card className="border-primary/20">
-                      <CardContent className="pt-6">
-                        <h4 className="text-sm font-medium mb-2">Ownership</h4>
-                        <Badge className="bg-primary text-primary-foreground mb-2">IT Users</Badge>
-                        <p className="text-xs text-muted-foreground">
-                          Primary area of responsibility for performed actions
+                  {/* Risk Score */}
+                  <Card className="border-warning/20">
+                    <CardContent className="pt-6">
+                      <h4 className="text-sm font-medium mb-2">Risk Score</h4>
+                      <div className="flex items-end gap-2 mb-2">
+                        <span className="text-3xl font-bold text-warning">{riskScore}/100</span>
+                      </div>
+                      <Progress value={riskScore} className="mb-2" />
+                      <p className="text-xs text-muted-foreground">
+                        Assesses potential risk associated with activities
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  {/* Ownership with Justification */}
+                  <Card className="border-primary/20">
+                    <CardContent className="pt-6">
+                      <h4 className="text-sm font-medium mb-2">Ownership</h4>
+                      <Badge className="bg-primary text-primary-foreground mb-3">IT Users</Badge>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        Primary area of responsibility for performed actions
+                      </p>
+                      
+                      <div className="mt-4 p-4 border rounded-lg bg-muted/30">
+                        <h5 className="text-sm font-semibold mb-2">Justification</h5>
+                        <p className="text-sm text-muted-foreground">
+                          Overall alignment of performed activities extracted from logs matches the mentioned reason and activities by the user. 
+                          The actions taken were consistent with the stated objectives and required elevated privileges for successful completion.
                         </p>
-                      </CardContent>
-                    </Card>
-                  </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
                   {/* Red Flags/Observations */}
                   <Card className="border-destructive/20 bg-destructive/5">
@@ -294,37 +330,35 @@ const RequestDetailsModal = ({ request, open, onOpenChange }: RequestDetailsModa
                     </CardContent>
                   </Card>
 
-                  {/* Risk & Compliance Scores */}
-                  <div>
-                    <h4 className="text-sm font-semibold mb-4">Risk & Compliance Scores</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Card className="border-primary/20">
-                        <CardContent className="pt-6">
-                          <h5 className="text-sm font-medium mb-2">Compliance Score</h5>
-                          <div className="flex items-end gap-2 mb-2">
-                            <span className="text-3xl font-bold text-primary">{complianceScore}/100</span>
-                          </div>
-                          <Progress value={complianceScore} className="mb-2" />
-                          <p className="text-xs text-muted-foreground">
-                            Measures adherence to compliance policies
-                          </p>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="border-warning/20">
-                        <CardContent className="pt-6">
-                          <h5 className="text-sm font-medium mb-2">Risk Score</h5>
-                          <div className="flex items-end gap-2 mb-2">
-                            <span className="text-3xl font-bold text-warning">{riskScore}/100</span>
-                          </div>
-                          <Progress value={riskScore} className="mb-2" />
-                          <p className="text-xs text-muted-foreground">
-                            Assesses potential risk associated with activities
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
+                  {/* Key Insights */}
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-primary" />
+                        Key Insights
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-start gap-2">
+                          <Shield className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <span>User accessed system during business hours only</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Shield className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <span>All modifications properly documented in change logs</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Shield className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <span>Transaction pattern consistent with stated objectives</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <Shield className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <span>No unauthorized access attempts detected</span>
+                        </li>
+                      </ul>
+                    </CardContent>
+                  </Card>
                 </CardContent>
               </Card>
             </TabsContent>

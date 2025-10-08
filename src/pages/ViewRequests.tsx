@@ -9,7 +9,10 @@ import RequestDetailsModal from "@/components/RequestDetailsModal";
 
 interface Request {
   id: string;
-  ritmNumber: string;
+  analysisId: string;
+  itsmNumber: string;
+  client: string;
+  system: string;
   requestedFor: string;
   requestedOnBehalfOf: string;
   requestedDate: string;
@@ -77,35 +80,26 @@ const ViewRequests = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>RITM Number</TableHead>
+                      <TableHead>Analysis ID</TableHead>
+                      <TableHead>ITSM Number</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>System</TableHead>
                       <TableHead>Requested For</TableHead>
                       <TableHead>Requested Date</TableHead>
                       <TableHead>Used Date</TableHead>
-                      <TableHead>TCodes</TableHead>
                       <TableHead>Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {requests.map((request) => (
                       <TableRow key={request.id}>
-                        <TableCell className="font-medium">{request.ritmNumber}</TableCell>
+                        <TableCell className="font-medium">{request.analysisId}</TableCell>
+                        <TableCell>{request.itsmNumber}</TableCell>
+                        <TableCell>{request.client}</TableCell>
+                        <TableCell>{request.system}</TableCell>
                         <TableCell>{request.requestedFor}</TableCell>
                         <TableCell>{format(new Date(request.requestedDate), "PP")}</TableCell>
                         <TableCell>{format(new Date(request.usedDate), "PP")}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {request.requestedTcodes.slice(0, 3).map((tcode, idx) => (
-                              <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md bg-primary/10 text-primary text-xs font-medium">
-                                {tcode}
-                              </span>
-                            ))}
-                            {request.requestedTcodes.length > 3 && (
-                              <span className="text-xs text-muted-foreground">
-                                +{request.requestedTcodes.length - 3} more
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
                         <TableCell>
                           <Button
                             size="sm"
