@@ -1,372 +1,408 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
-import { AlertCircle, CheckCircle, TrendingUp, Shield, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
 
-interface Request {
-  id: string;
-  analysisId: string;
-  itsmNumber: string;
-  client: string;
-  system: string;
-  requestedFor: string;
-  requestedOnBehalfOf: string;
-  requestedDate: string;
-  usedDate: string;
-  requestedTcodes: string[];
-  reason: string;
-  activities: string;
-  hasAuditLog: boolean;
-  hasCdhdrLog: boolean;
-  hasCdposLog: boolean;
-}
+
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { toast } from "sonner";
+import { getRequestDetails, RequestDetails } from "@/api/viewRequestapi";
 
 interface RequestDetailsModalProps {
-  request: Request;
+  analysisId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const RequestDetailsModal = ({ request, open, onOpenChange }: RequestDetailsModalProps) => {
-  // Mock transaction usage data
-  const transactionUsageData = [
-    { timestamp: "2023-10-05 10:15:22", transaction: "FB01", description: "Post Document", user: "FF_FUNC_01", client: "800", system: "PROD-FIN" },
-    { timestamp: "2023-10-05 10:18:43", transaction: "FB03", description: "Display Document", user: "FF_FUNC_01", client: "800", system: "PROD-FIN" },
-    { timestamp: "2023-10-05 10:22:15", transaction: "SU01", description: "User Maintenance", user: "FF_SEC_02", client: "800", system: "PROD-FIN" },
-    { timestamp: "2023-10-05 10:35:02", transaction: "PFCG", description: "Role Maintenance", user: "FF_SEC_02", client: "800", system: "PROD-FIN" },
-  ];
+const RequestDetailsModal = ({ analysisId, open, onOpenChange }: RequestDetailsModalProps) => {
+  const [details, setDetails] = useState<RequestDetails | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Mock audit logs data
-  const auditLogsData = [
-    { timestamp: "2023-10-05 10:15:22", action: "Document Posted", object: "100001234", user: "FF_FUNC_01", details: "Invoice posted successfully" },
-    { timestamp: "2023-10-05 10:18:43", action: "Document Viewed", object: "100001234", user: "FF_FUNC_01", details: "Document display accessed" },
-  ];
+  useEffect(() => {
+    if (open && analysisId) {
+      fetchDetails();
+    }
+  }, [open, analysisId]);
 
-  // Mock change doc logs data
-  const changeDocLogsData = [
-    { timestamp: "2023-10-05 10:22:15", table: "USR02", field: "LOCK", oldValue: "0", newValue: "1", user: "FF_SEC_02" },
-    { timestamp: "2023-10-05 10:35:02", table: "AGR_DEFINE", field: "AGR_NAME", oldValue: "", newValue: "Z_TEST_ROLE", user: "FF_SEC_02" },
-  ];
-
-  // Mock deviation details
-  const deviatedTcodes = ["SU24", "SM19"];
-  const matchedTcodes = request.requestedTcodes;
-
-  const activityAlignment = 85;
-  const complianceScore = 75;
-  const riskScore = 65;
+  const fetchDetails = async () => {
+    try {
+      setLoading(true);
+      const data = await getRequestDetails(analysisId);
+      setDetails(data);
+      console.log('Request details loaded:', data);
+    } catch (error: any) {
+      console.error('Error fetching details:', error);
+      toast.error('Failed to load request details: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">Request Details</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Request Details</DialogTitle>
           <DialogDescription>
-            Analysis and insights for ITSM: {request.itsmNumber}
+            Analysis and Insights for ITSM: {details?.itsmNumber || analysisId}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Request Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Request Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Analysis ID</p>
-                  <p className="font-semibold">{request.analysisId}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">ITSM Number</p>
-                  <p className="font-semibold">{request.itsmNumber}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Client</p>
-                  <p className="font-semibold">{request.client}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">System</p>
-                  <p className="font-semibold">{request.system}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Requested For</p>
-                  <p className="font-semibold">{request.requestedFor}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Requested On Behalf Of</p>
-                  <p className="font-semibold">{request.requestedOnBehalfOf}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Requested Date</p>
-                  <p className="font-semibold">{format(new Date(request.requestedDate), "PPP")}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Used Date</p>
-                  <p className="font-semibold">{format(new Date(request.usedDate), "PPP")}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground mb-2">Requested TCodes</p>
-                <div className="flex flex-wrap gap-2">
-                  {request.requestedTcodes.map((tcode, idx) => (
-                    <Badge key={idx} variant="outline">{tcode}</Badge>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Reason</p>
-                <p className="text-sm mt-1">{request.reason}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Activities</p>
-                <p className="text-sm mt-1">{request.activities}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Separator />
-
-          {/* Tabbed Analysis Section */}
-          <Tabs defaultValue="transaction" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="transaction">Transaction Usage</TabsTrigger>
-              <TabsTrigger value="audit">Audit Logs</TabsTrigger>
-              <TabsTrigger value="change">Change Doc Logs</TabsTrigger>
-              <TabsTrigger value="ai">AI Insights</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="transaction" className="mt-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Timestamp</TableHead>
-                        <TableHead>Transaction</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>System</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {transactionUsageData.map((row, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell className="font-mono text-xs">{row.timestamp}</TableCell>
-                          <TableCell className="font-semibold">{row.transaction}</TableCell>
-                          <TableCell>{row.description}</TableCell>
-                          <TableCell className="font-mono text-xs">{row.user}</TableCell>
-                          <TableCell>{row.client}</TableCell>
-                          <TableCell>{row.system}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="audit" className="mt-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Timestamp</TableHead>
-                        <TableHead>Action</TableHead>
-                        <TableHead>Object</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Details</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {auditLogsData.map((row, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell className="font-mono text-xs">{row.timestamp}</TableCell>
-                          <TableCell>{row.action}</TableCell>
-                          <TableCell className="font-mono">{row.object}</TableCell>
-                          <TableCell className="font-mono text-xs">{row.user}</TableCell>
-                          <TableCell>{row.details}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="change" className="mt-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Timestamp</TableHead>
-                        <TableHead>Table</TableHead>
-                        <TableHead>Field</TableHead>
-                        <TableHead>Old Value</TableHead>
-                        <TableHead>New Value</TableHead>
-                        <TableHead>User</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {changeDocLogsData.map((row, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell className="font-mono text-xs">{row.timestamp}</TableCell>
-                          <TableCell className="font-mono">{row.table}</TableCell>
-                          <TableCell className="font-mono">{row.field}</TableCell>
-                          <TableCell>{row.oldValue || "-"}</TableCell>
-                          <TableCell>{row.newValue}</TableCell>
-                          <TableCell className="font-mono text-xs">{row.user}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="ai" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>AI Analysis Insights</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Grid Layout for All Four Boxes */}
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* Activity Alignment */}
-                    <Card className="border-primary/20">
-                      <CardContent className="pt-6 h-full flex flex-col">
-                        <h4 className="text-sm font-medium mb-2">Activity Alignment</h4>
-                        <div className="flex items-end gap-2 mb-2">
-                          <span className="text-3xl font-bold text-primary">{activityAlignment}%</span>
-                        </div>
-                        <Progress value={activityAlignment} className="mb-2" />
-                        <p className="text-xs text-muted-foreground">
-                          Match between performed activities and requested purpose
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    {/* Ownership */}
-                    <Card className="border-primary/20">
-                      <CardContent className="pt-6 h-full flex flex-col">
-                        <h4 className="text-sm font-medium mb-2">Ownership</h4>
-                        <Badge className="bg-primary text-primary-foreground mb-3">IT Users</Badge>
-                        <p className="text-xs text-muted-foreground">
-                          Primary area of responsibility for performed actions
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    {/* Justification */}
-                    <Card className="border-primary/20">
-                      <CardContent className="pt-6 h-full flex flex-col">
-                        <h4 className="text-sm font-medium mb-3">Justification</h4>
-                        <Badge className="bg-warning text-warning-foreground">Partially</Badge>
-                      </CardContent>
-                    </Card>
-
-                    {/* Risk Score */}
-                    <Card className="border-warning/20">
-                      <CardContent className="pt-6 h-full flex flex-col">
-                        <h4 className="text-sm font-medium mb-2">Risk Score</h4>
-                        <div className="flex items-end gap-2 mb-2">
-                          <span className="text-3xl font-bold text-warning">{riskScore}/100</span>
-                        </div>
-                        <Progress value={riskScore} className="mb-2" />
-                        <p className="text-xs text-muted-foreground">
-                          Assesses potential risk associated with activities
-                        </p>
-                      </CardContent>
-                    </Card>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500 mr-3" />
+            <span>Loading details...</span>
+          </div>
+        ) : details ? (
+          <div className="space-y-6">
+            {/* Request Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Request Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Analysis ID</p>
+                    <p className="font-semibold">{details.analysisId}</p>
                   </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">ITSM Number</p>
+                    <p className="font-semibold">{details.itsmNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Client</p>
+                    <p className="font-semibold">{details.client}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">System</p>
+                    <p className="font-semibold">{details.system}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Requested For</p>
+                    <p className="font-semibold">{details.requestedFor}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Requested On Behalf Of</p>
+                    <p className="font-semibold">{details.requestedOnBehalfOf}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Requested Date</p>
+                    <p className="font-semibold">{details.requestedDate}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Used Date</p>
+                    <p className="font-semibold">{details.usedDate}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-muted-foreground mb-2">Requested TCodes</p>
+                    <div className="flex flex-wrap gap-2">
+                      {details.tcodes.split(',').map((tcode, idx) => (
+                        <Badge key={idx} variant="secondary">{tcode.trim()}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-muted-foreground">Reason</p>
+                    <p className="text-sm mt-1">{details.reason}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-muted-foreground">Activities</p>
+                    <p className="text-sm mt-1">{details.activities}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                  {/* Red Flags/Observations */}
-                  <Card className="border-destructive/20 bg-destructive/5">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-destructive" />
-                        Red Flags/Observations
-                      </CardTitle>
+            {/* Tabs for Logs and Analysis */}
+            <Tabs defaultValue="transaction" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="transaction">
+                  Transaction Usage
+                  {details.transactionUsage.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {details.transactionUsage.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="audit">
+                  Audit Logs
+                  {details.auditLogs.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {details.auditLogs.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="change">
+                  Change Doc Logs
+                  {details.changeDocLogs.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {details.changeDocLogs.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="insights">AI Insights</TabsTrigger>
+              </TabsList>
+
+              {/* Transaction Usage Tab */}
+              <TabsContent value="transaction" className="mt-4">
+                {details.transactionUsage.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No transaction logs available</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Timestamp</TableHead>
+                          <TableHead>Transaction</TableHead>
+                          <TableHead>Program</TableHead>
+                          <TableHead>User</TableHead>
+                          <TableHead>Client</TableHead>
+                          <TableHead>System</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {details.transactionUsage.map((tu, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="text-sm">{tu.timestamp}</TableCell>
+                            <TableCell><Badge>{tu.transaction}</Badge></TableCell>
+                            <TableCell className="text-sm">{tu.description}</TableCell>
+                            <TableCell className="text-sm">{tu.user}</TableCell>
+                            <TableCell className="text-sm">{tu.client}</TableCell>
+                            <TableCell className="text-sm">{tu.system}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Audit Logs Tab */}
+              <TabsContent value="audit" className="mt-4">
+                {details.auditLogs.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No audit logs available</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Timestamp</TableHead>
+                          <TableHead>Client</TableHead>
+                          <TableHead>Terminal</TableHead>
+                          <TableHead>Transaction</TableHead>
+                          <TableHead>Program</TableHead>
+                          <TableHead>Details</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                     
+                      <TableBody>
+                        {details.auditLogs.map((log, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="text-sm">{log.timestamp}</TableCell>
+                            <TableCell className="text-sm">{log.action}</TableCell>
+                            <TableCell className="text-sm">{log.terminal}</TableCell>
+                            <TableCell className="text-sm">{log.object}</TableCell>
+                            <TableCell className="text-sm">{log.program}</TableCell>
+                            <TableCell className="text-sm max-w-xs truncate">{log.details}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Change Doc Logs Tab */}
+              <TabsContent value="change" className="mt-4">
+                {details.changeDocLogs.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">No change document logs available</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Timestamp</TableHead>
+                          <TableHead>Table</TableHead>
+                          <TableHead>Field</TableHead>
+                          <TableHead>Old Value</TableHead>
+                          <TableHead>New Value</TableHead>
+                          <TableHead>User</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {details.changeDocLogs.map((log, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="text-sm">{log.timestamp}</TableCell>
+                            <TableCell><Badge variant="outline">{log.table}</Badge></TableCell>
+                            <TableCell className="text-sm">{log.field}</TableCell>
+                            <TableCell className="text-sm">{log.oldValue || '-'}</TableCell>
+                            <TableCell className="text-sm">{log.newValue || '-'}</TableCell>
+                            <TableCell className="text-sm">{log.user}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* AI Insights Tab */}
+              <TabsContent value="insights" className="mt-4 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Activity Alignment</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ul className="space-y-2 text-sm">
-                        <li className="flex items-start gap-2">
-                          <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
-                          <span>Multiple user profile changes in short time period</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
-                          <span>Failed authorization check for FB01</span>
-                        </li>
-                      </ul>
+                      <div className="flex items-center justify-between">
+                        <span className="text-4xl font-bold">{details.aiInsights.activityAlignment}%</span>
+                        <div className="w-full max-w-xs ml-4">
+                          <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-blue-500" 
+                              style={{ width: `${details.aiInsights.activityAlignment}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Match between requested activities and requested purpose
+                      </p>
                     </CardContent>
                   </Card>
 
-                  {/* Recommendations */}
-                  <Card className="border-success/20 bg-success/5">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-success" />
-                        Recommendations
-                      </CardTitle>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Ownership</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ul className="space-y-2 text-sm">
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
-                          <span>Review role ZFI_AP_CLERK changes for compliance</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
-                          <span>Verify that all profile modifications were necessary</span>
-                        </li>
-                      </ul>
+                      <Badge className="text-lg px-4 py-2">{details.aiInsights.ownership}</Badge>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Primary area of responsibility
+                      </p>
                     </CardContent>
                   </Card>
 
-                  {/* Key Insights */}
-                  <Card className="border-primary/20 bg-primary/5">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-primary" />
-                        Key Insights
-                      </CardTitle>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Justification</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ul className="space-y-2 text-sm">
-                        <li className="flex items-start gap-2">
-                          <Shield className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                          <span>User accessed system during business hours only</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <Shield className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                          <span>All modifications properly documented in change logs</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <Shield className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                          <span>Transaction pattern consistent with stated objectives</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <Shield className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                          <span>No unauthorized access attempts detected</span>
-                        </li>
+                      <Badge 
+                        variant={details.aiInsights.justification === 'Justified' ? 'default' : 'secondary'}
+                        className="text-lg px-4 py-2"
+                      >
+                        {details.aiInsights.justification}
+                      </Badge>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Match between activities and purpose
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg">Risk Score</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <span className="text-4xl font-bold">{details.aiInsights.riskScore}/100</span>
+                        <div className="w-full max-w-xs ml-4">
+                          <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full ${
+                                details.aiInsights.riskScore > 70 ? 'bg-red-500' : 
+                                details.aiInsights.riskScore > 40 ? 'bg-yellow-500' : 
+                                'bg-green-500'
+                              }`}
+                              style={{ width: `${details.aiInsights.riskScore}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Assessed potential risk
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {details.aiInsights.redFlags.length > 0 && (
+                  <Card className="border-red-200 bg-red-50">
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="h-5 w-5 text-red-600" />
+                        <CardTitle className="text-lg text-red-900">Red Flags/Observations</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {details.aiInsights.redFlags.map((flag, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-red-900">{flag}</span>
+                          </li>
+                        ))}
                       </ul>
                     </CardContent>
                   </Card>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+                )}
+
+                {details.aiInsights.recommendations.length > 0 && (
+                  <Card className="border-green-200 bg-green-50">
+                    <CardHeader>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5 text-green-600" />
+                        <CardTitle className="text-lg text-green-900">Recommendations</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {details.aiInsights.recommendations.map((rec, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-green-900">{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {details.aiInsights.keyInsights.length > 0 && (
+                  <Card className="border-blue-200 bg-blue-50">
+                    <CardHeader>
+                      <CardTitle className="text-lg text-blue-900">Key Insights</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {details.aiInsights.keyInsights.map((insight, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="text-blue-600 font-bold">•</span>
+                            <span className="text-sm text-blue-900">{insight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-muted-foreground">
+            Failed to load request details
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
