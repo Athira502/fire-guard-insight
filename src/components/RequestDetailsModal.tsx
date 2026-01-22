@@ -63,7 +63,7 @@ const RequestDetailsModal = ({ analysisId, open, onOpenChange }: RequestDetailsM
           </div>
         ) : details ? (
           <div className="space-y-6">
-            {/* Request Information */}
+      
             <Card>
               <CardHeader>
                 <CardTitle>Request Information</CardTitle>
@@ -122,7 +122,7 @@ const RequestDetailsModal = ({ analysisId, open, onOpenChange }: RequestDetailsM
               </CardContent>
             </Card>
 
-            {/* Tabs for Logs and Analysis */}
+       
             <Tabs defaultValue="transaction" className="w-full">
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="transaction">
@@ -152,7 +152,7 @@ const RequestDetailsModal = ({ analysisId, open, onOpenChange }: RequestDetailsM
                 <TabsTrigger value="insights">AI Insights</TabsTrigger>
               </TabsList>
 
-              {/* Transaction Usage Tab */}
+          
               <TabsContent value="transaction" className="mt-4">
                 {details.transactionUsage.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No transaction logs available</p>
@@ -186,7 +186,7 @@ const RequestDetailsModal = ({ analysisId, open, onOpenChange }: RequestDetailsM
                 )}
               </TabsContent>
 
-              {/* Audit Logs Tab */}
+         
               <TabsContent value="audit" className="mt-4">
                 {details.auditLogs.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No audit logs available</p>
@@ -221,7 +221,7 @@ const RequestDetailsModal = ({ analysisId, open, onOpenChange }: RequestDetailsM
                 )}
               </TabsContent>
 
-              {/* Change Doc Logs Tab */}
+            
               <TabsContent value="change" className="mt-4">
                 {details.changeDocLogs.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">No change document logs available</p>
@@ -233,8 +233,6 @@ const RequestDetailsModal = ({ analysisId, open, onOpenChange }: RequestDetailsM
                           <TableHead>Timestamp</TableHead>
                           <TableHead>Table</TableHead>
                           <TableHead>Field</TableHead>
-                          <TableHead>Old Value</TableHead>
-                          <TableHead>New Value</TableHead>
                           <TableHead>User</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -244,8 +242,6 @@ const RequestDetailsModal = ({ analysisId, open, onOpenChange }: RequestDetailsM
                             <TableCell className="text-sm">{log.timestamp}</TableCell>
                             <TableCell><Badge variant="outline">{log.table}</Badge></TableCell>
                             <TableCell className="text-sm">{log.field}</TableCell>
-                            <TableCell className="text-sm">{log.oldValue || '-'}</TableCell>
-                            <TableCell className="text-sm">{log.newValue || '-'}</TableCell>
                             <TableCell className="text-sm">{log.user}</TableCell>
                           </TableRow>
                         ))}
@@ -292,22 +288,49 @@ const RequestDetailsModal = ({ analysisId, open, onOpenChange }: RequestDetailsM
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Justification</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Badge 
-                        variant={details.aiInsights.justification === 'Justified' ? 'default' : 'secondary'}
-                        className="text-lg px-4 py-2"
-                      >
-                        {details.aiInsights.justification}
-                      </Badge>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Match between activities and purpose
-                      </p>
-                    </CardContent>
-                  </Card>
+                 <Card>
+  <CardHeader>
+    <CardTitle className="text-lg">Justification</CardTitle>
+  </CardHeader>
+  <CardContent>
+    {(() => {
+      const fullText = details?.aiInsights?.justification || "";
+      
+      const [status, ...commentParts] = fullText.split(':');
+      const comment = commentParts.join(':').trim();
+
+      return (
+        <div className="flex flex-col gap-3">
+          <div>
+            <Badge 
+              variant={status.trim() === 'Justified' ? 'default' : 'destructive'}
+              className="text-sm px-3 py-1 rounded-full" 
+            >
+              {status.trim() || 'Pending'}
+            </Badge>
+          </div>
+
+         
+          {comment ? (
+            <p className="text-sm leading-relaxed text-foreground">
+              {comment}
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">
+              No detailed justification provided.
+            </p>
+          )}
+
+          <p className="text-xs text-muted-foreground mt-1 border-t pt-2">
+            Match between activities and purpose
+          </p>
+        </div>
+      );
+    })()}
+  </CardContent>
+</Card>
+                  
+                  
 
                   <Card>
                     <CardHeader>
@@ -336,7 +359,7 @@ const RequestDetailsModal = ({ analysisId, open, onOpenChange }: RequestDetailsM
                   </Card>
                 </div>
 
-                {details.aiInsights.redFlags.length > 0 && (
+                {/* {details.aiInsights.redFlags.length > 0 && (
                   <Card className="border-red-200 bg-red-50">
                     <CardHeader>
                       <div className="flex items-center gap-2">
@@ -393,7 +416,54 @@ const RequestDetailsModal = ({ analysisId, open, onOpenChange }: RequestDetailsM
                         ))}
                       </ul>
                     </CardContent>
-                  </Card>
+                  </Card> */}
+                  {details.aiInsights.redFlags && details.aiInsights.redFlags.trim() !== '' && (
+  <Card className="border-red-200 bg-red-50">
+    <CardHeader>
+      <div className="flex items-center gap-2">
+        <AlertCircle className="h-5 w-5 text-red-600" />
+        <CardTitle className="text-lg text-red-900">Red Flags</CardTitle>
+      </div>
+    </CardHeader>
+    <CardContent>
+      <div className="flex items-start gap-2">
+    
+        <p className="text-sm text-red-900 leading-relaxed">{details.aiInsights.redFlags}</p>
+      </div>
+    </CardContent>
+  </Card>
+)}
+
+{details.aiInsights.recommendations && details.aiInsights.recommendations.trim() !== '' && (
+  <Card className="border-green-200 bg-green-50">
+    <CardHeader>
+      <div className="flex items-center gap-2">
+        <CheckCircle className="h-5 w-5 text-green-600" />
+        <CardTitle className="text-lg text-green-900">Recommendations</CardTitle>
+      </div>
+    </CardHeader>
+    <CardContent>
+      <div className="flex items-start gap-2">
+       
+        <p className="text-sm text-green-900 leading-relaxed">{details.aiInsights.recommendations}</p>
+      </div>
+    </CardContent>
+  </Card>
+)}
+
+{details.aiInsights.keyInsights && details.aiInsights.keyInsights.trim() !== '' && (
+  <Card className="border-blue-200 bg-blue-50">
+    <CardHeader>
+      <CardTitle className="text-lg text-blue-900">Key Insights</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="flex items-start gap-2">
+      
+        <p className="text-sm text-blue-900 leading-relaxed">{details.aiInsights.keyInsights}</p>
+      </div>
+    </CardContent>
+  </Card>
+
                 )}
               </TabsContent>
             </Tabs>

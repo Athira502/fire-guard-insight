@@ -17,7 +17,7 @@ const ViewRequests = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch requests on component mount
+
   useEffect(() => {
     fetchRequests();
   }, []);

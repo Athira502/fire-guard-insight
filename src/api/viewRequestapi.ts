@@ -64,9 +64,9 @@ export interface AIInsights {
   ownership: string;
   justification: string;
   riskScore: number;
-  redFlags: string[];
-  recommendations: string[];
-  keyInsights: string[];
+  redFlags: string;
+  recommendations: string;
+  keyInsights: string;
 }
 
 export interface CreateRequestPayload {
